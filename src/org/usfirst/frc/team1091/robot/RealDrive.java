@@ -11,9 +11,10 @@ public class RealDrive extends RobotDrive {
 
 	public void yolo420SwagDrive(XboxController xboxController) {
 		if (xboxController == null) {
-			throw new NullPointerException("Mega Failure");
+			throw new NullPointerException("No controller found!");
 		}
-		tankDrive(xboxController.getLeft(), xboxController.getRight());
-		
+		arcadeDrive(xboxController.getLeft(), xboxController.getRight(), false);
+
 	}
+
 }
