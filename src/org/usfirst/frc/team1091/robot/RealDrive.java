@@ -13,8 +13,8 @@ public class RealDrive extends RobotDrive {
 		if (xboxController == null) {
 			throw new NullPointerException("No controller found!");
 		}
-		arcadeDrive(xboxController.getLeft(), xboxController.getRight(), false);
 
+		arcadeDrive(xboxController.forward(), xboxController.turn(), false);
 	}
 
 }

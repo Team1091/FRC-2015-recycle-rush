@@ -15,4 +15,10 @@
 		<nature>org.eclipse.jdt.core.javanature</nature>
 		<nature>edu.wpi.first.wpilib.plugins.core.nature.FRCProjectNature</nature>
 	</natures>
+	<variableList>
+		<variable>
+			<name>EDU_LIBS</name>
+			<value>file:/C:/Users/Team1091/Desktop/eclipse/plugins/edu.wpi.first.wpilib.plugins.java_0.1.0.201501170231.jar</value>
+		</variable>
+	</variableList>
 </projectDescription>
