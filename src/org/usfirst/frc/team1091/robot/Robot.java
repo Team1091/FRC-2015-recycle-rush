@@ -1,7 +1,10 @@
 package org.usfirst.frc.team1091.robot;
 
+import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.Relay;
 import edu.wpi.first.wpilibj.SampleRobot;
+import edu.wpi.first.wpilibj.SensorBase;
 import edu.wpi.first.wpilibj.SpeedController;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Victor;
@@ -30,19 +33,34 @@ public class Robot extends SampleRobot {
 	DigitalInput topLimitSwitch;
 	DigitalInput lowerLimitSwitch;
 	edu.wpi.first.wpilibj.Timer autoClock;
+
 	long startTime;
+	long matchTime;
 	private boolean first = true;
 	private boolean second = true;
 	boolean bDown;
+	boolean moving;
+	boolean on;
+	boolean down;
+	double elevatorLift = 0;
+	Compressor compressor;
+	Relay underRelay;
 
 	public Robot() {
 		yolo420SwagDrive = new RealDrive(0, 1);
 		yolo420SwagDrive.setExpiration(0.1);
 		xboxController = new XboxController(0);
-
 		elevatorMotor = new Victor(2);
 		topLimitSwitch = new DigitalInput(0);
 		lowerLimitSwitch = new DigitalInput(1);
+
+		compressor = new Compressor(1);
+
+		underRelay = new Relay(0);
+
+		new SensorBase() {
+		};
+
 	}
 
 	public void autonomous() {
@@ -52,18 +70,24 @@ public class Robot extends SampleRobot {
 				startTime = System.currentTimeMillis();
 				first = false;
 			}
-			if (System.currentTimeMillis() - startTime < 3000) {
-				yolo420SwagDrive.drive(.3, 0);
-			} else if (System.currentTimeMillis() - startTime < 3500) {
-				yolo420SwagDrive.drive(0, 0);
+			if (System.currentTimeMillis() - startTime < 1000) {
+				yolo420SwagDrive.drive(.2, 0);
+			} else if (System.currentTimeMillis() - startTime < 2000) {
+				yolo420SwagDrive.autoSwagDrive(0, 0);
 				elevatorMotor.set(.75);
-			} else if (System.currentTimeMillis() - startTime < 5100) {
-				yolo420SwagDrive.drive(-.3, 0);
-				elevatorMotor.set(0);
+			} else if (System.currentTimeMillis() - startTime < 13200) {
+				yolo420SwagDrive.autoSwagDrive(-.25, .2);
+				elevatorMotor.set(.19);
+			} else if (System.currentTimeMillis() - startTime < 14700) {
+				yolo420SwagDrive.autoSwagDrive(.7, -.7);
+				elevatorMotor.set(.0);
 			} else if (System.currentTimeMillis() - startTime < 15000) {
-				yolo420SwagDrive.drive(0, 0);
+				yolo420SwagDrive.autoSwagDrive(0, 0);
+				elevatorMotor.set(0);
 			}
 		}
+		while (isAutonomous() && !isEnabled())
+			first = true;
 	}
 
 	public void operatorControl() {
@@ -71,34 +95,26 @@ public class Robot extends SampleRobot {
 
 		while (isOperatorControl() && isEnabled()) {
 
-			double elevatorLift = xboxController.elevatorLift();
+			if (xboxController.isButtonDown(xboxController.b)) {
 
-			if (xboxController.isButtonDown(xboxController.a)) {
+				if (second) {
+					startTime = System.currentTimeMillis();
+					second = false;
+				}
+			} else
+				second = true;
 
-				elevatorLift = 0.1;
+			if (System.currentTimeMillis() - startTime < 1000) {
+				elevatorLift = .8;
+				moving = true;
+			}
+			if (System.currentTimeMillis() - startTime > 1000) {
+				elevatorLift = 0;
+				moving = false;
 			}
 
-			else {
-				if (xboxController.isButtonDown(xboxController.b)) {
-
-					if (second) {
-
-						startTime = System.currentTimeMillis();
-
-						second = false;
-					}
-					if (System.currentTimeMillis() - startTime < 1000)
-						elevatorLift = .75;
-					if (System.currentTimeMillis() - startTime > 1000)
-						elevatorLift = 0;
-
-				} else
-					second = true;
-
-				if (System.currentTimeMillis() - startTime < 1000)
-					elevatorLift = .75;
-
-			}
+			if (moving == false)
+				elevatorLift = xboxController.elevatorLift();
 
 			if (!topLimitSwitch.get())
 				elevatorLift = Math.min(0, elevatorLift);
@@ -106,10 +122,17 @@ public class Robot extends SampleRobot {
 			if (!lowerLimitSwitch.get())
 				elevatorLift = Math.max(elevatorLift, 0);
 
+			if (xboxController.isButtonDown(xboxController.a))
+				elevatorLift = 0.18;
+
 			elevatorMotor.set(elevatorLift);
 
 			yolo420SwagDrive.yolo420SwagDrive(xboxController);
-			Timer.delay(0.005); // wait for a motor update time
+			yolo420SwagDrive.pneumatics(xboxController);
+			// yolo420SwagDrive.pneumatics(xboxController);
+			if (System.currentTimeMillis() - matchTime > 140000)
+
+				Timer.delay(0.005); // wait for a motor update time
 
 		}
 	}
