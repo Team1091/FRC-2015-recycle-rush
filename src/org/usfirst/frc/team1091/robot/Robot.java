@@ -65,23 +65,31 @@ public class Robot extends SampleRobot {
 
 	public void autonomous() {
 		while (isAutonomous() && isEnabled()) {
+
 			yolo420SwagDrive.setSafetyEnabled(false);
+
 			if (first) {
+
 				startTime = System.currentTimeMillis();
+
 				first = false;
+
 			}
-			if (System.currentTimeMillis() - startTime < 1000) {
+
+			long currentTime = System.currentTimeMillis() - startTime;
+
+			if (currentTime < 1000) {
 				yolo420SwagDrive.drive(.2, 0);
-			} else if (System.currentTimeMillis() - startTime < 2000) {
+			} else if (currentTime < 2000) {
 				yolo420SwagDrive.autoSwagDrive(0, 0);
 				elevatorMotor.set(.75);
-			} else if (System.currentTimeMillis() - startTime < 13200) {
+			} else if (currentTime < 13200) {
 				yolo420SwagDrive.autoSwagDrive(-.25, .2);
 				elevatorMotor.set(.19);
-			} else if (System.currentTimeMillis() - startTime < 14700) {
+			} else if (currentTime < 14700) {
 				yolo420SwagDrive.autoSwagDrive(.7, -.7);
 				elevatorMotor.set(.0);
-			} else if (System.currentTimeMillis() - startTime < 15000) {
+			} else if (currentTime < 15000) {
 				yolo420SwagDrive.autoSwagDrive(0, 0);
 				elevatorMotor.set(0);
 			}
