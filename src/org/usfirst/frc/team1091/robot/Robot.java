@@ -1,10 +1,19 @@
 package org.usfirst.frc.team1091.robot;
 
+import com.ni.vision.NIVision;
+
+import com.ni.vision.NIVision.Image;
+
+import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.Relay;
 import edu.wpi.first.wpilibj.SampleRobot;
-import edu.wpi.first.wpilibj.SensorBase;
+import edu.wpi.first.wpilibj.Sendable;
+
 import edu.wpi.first.wpilibj.SpeedController;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Victor;
@@ -30,21 +39,26 @@ public class Robot extends SampleRobot {
 	private SpeedController elevatorMotor; // Lifter motor
 	RealDrive yolo420SwagDrive; // class that handles basic drive operations
 	XboxController xboxController; // set to ID 1 in DriverStation
+	XboxController xboxcontroler;
 	DigitalInput topLimitSwitch;
 	DigitalInput lowerLimitSwitch;
 	edu.wpi.first.wpilibj.Timer autoClock;
-
+	Compressor compressor;
+	Relay underRelay;
+				//the bit
+	static final int maxController = 0;
 	long startTime;
 	long matchTime;
 	private boolean first = true;
-	private boolean second = true;
+	Sendable distance;
 	boolean bDown;
 	boolean moving;
 	boolean on;
 	boolean down;
 	double elevatorLift = 0;
-	Compressor compressor;
-	Relay underRelay;
+
+
+	// CameraServer server;
 
 	public Robot() {
 		yolo420SwagDrive = new RealDrive(0, 1);
@@ -57,14 +71,32 @@ public class Robot extends SampleRobot {
 		compressor = new Compressor(1);
 
 		underRelay = new Relay(0);
+		// server = CameraServer.getInstance();
+		// server.setQuality(50);
+		// server.startAutomaticCapture("cam0");
 
-		new SensorBase() {
-		};
+	}
+
+	boolean exampleBool;
+	{
+		exampleBool = isDisabled();
+		exampleBool = isEnabled();
+
+		exampleBool = isAutonomous();
+		exampleBool = isOperatorControl();
+		exampleBool = isTest();
+
+		while (isOperatorControl() && isEnabled()) {
+		}
+
+		exampleBool = DriverStation.getInstance().isDisabled();
 
 	}
 
 	public void autonomous() {
+
 		while (isAutonomous() && isEnabled()) {
+			
 
 			yolo420SwagDrive.setSafetyEnabled(false);
 
@@ -77,70 +109,65 @@ public class Robot extends SampleRobot {
 			}
 
 			long currentTime = System.currentTimeMillis() - startTime;
-
-			if (currentTime < 1000) {
+//			if (currentTime < 3500) {
+//			drive.close();
+//			drive.autoBrake(true);
+//			elevatorMotor.set(-.9);
+//		} else if (currentTime < 4500) {
+//			drive.autoBrake(false);
+//			drive.autoDrive(.65, -.65);
+//			elevatorMotor.set(0);
+//		} else if (currentTime < 5250 + 300) {
+//			drive.drive(.4, 0);
+//		} else if (currentTime < 6700) {
+//			drive.autoDrive(-.25, .4);
+			if (currentTime < 2500) {
+				yolo420SwagDrive.open();
+				yolo420SwagDrive.drive(.4, 0);
+			} else if (currentTime < 3000) {
 				yolo420SwagDrive.drive(.2, 0);
-			} else if (currentTime < 2000) {
-				yolo420SwagDrive.autoSwagDrive(0, 0);
-				elevatorMotor.set(.75);
-			} else if (currentTime < 13200) {
-				yolo420SwagDrive.autoSwagDrive(-.25, .2);
-				elevatorMotor.set(.19);
-			} else if (currentTime < 14700) {
-				yolo420SwagDrive.autoSwagDrive(.7, -.7);
-				elevatorMotor.set(.0);
-			} else if (currentTime < 15000) {
-				yolo420SwagDrive.autoSwagDrive(0, 0);
+			} else if (currentTime < 4500) {
+				yolo420SwagDrive.drive(0, 0);
+			} else if (currentTime < 11200+2600) {
+				// elevatorMotor.set(-.6);
+			} else if (currentTime < 12200+2600) {
+				// drive.open();
+				yolo420SwagDrive.drive(0, 0);
 				elevatorMotor.set(0);
-			}
+			} else
+				yolo420SwagDrive.drive(0, 0);
 		}
-		while (isAutonomous() && !isEnabled())
+
+		if (isAutonomous() && !isEnabled())
 			first = true;
+
 	}
 
 	public void operatorControl() {
+
+
 		yolo420SwagDrive.setSafetyEnabled(true);
 
 		while (isOperatorControl() && isEnabled()) {
 
-			if (xboxController.isButtonDown(xboxController.b)) {
-
-				if (second) {
-					startTime = System.currentTimeMillis();
-					second = false;
-				}
-			} else
-				second = true;
-
-			if (System.currentTimeMillis() - startTime < 1000) {
-				elevatorLift = .8;
-				moving = true;
-			}
-			if (System.currentTimeMillis() - startTime > 1000) {
-				elevatorLift = 0;
-				moving = false;
-			}
-
 			if (moving == false)
-				elevatorLift = xboxController.elevatorLift();
-
-			if (!topLimitSwitch.get())
-				elevatorLift = Math.min(0, elevatorLift);
+				elevatorLift = xboxController.elevatorLift(maxController);
 
 			if (!lowerLimitSwitch.get())
+				elevatorLift = Math.min(0, elevatorLift);
+
+			if (!topLimitSwitch.get())
 				elevatorLift = Math.max(elevatorLift, 0);
 
-			if (xboxController.isButtonDown(xboxController.a))
-				elevatorLift = 0.18;
-
 			elevatorMotor.set(elevatorLift);
-
+			if (Math.abs(elevatorLift) > 0)
+				yolo420SwagDrive.autoBrake(true);
+			else
+				yolo420SwagDrive.autoBrake(false);
 			yolo420SwagDrive.yolo420SwagDrive(xboxController);
-			yolo420SwagDrive.pneumatics(xboxController);
-			// yolo420SwagDrive.pneumatics(xboxController);
-			if (System.currentTimeMillis() - matchTime > 140000)
+			yolo420SwagDrive.pneumatics(xboxController, maxController);
 
-				Timer.delay(0.005); // wait for a motor update time
+			Timer.delay(0.005); // wait for a motor update time
 
 		}
 	}
